@@ -1,0 +1,94 @@
+import java.util.*;
+
+class FirstFollow {
+    static HashMap<String, List<String>> productions = new HashMap<>();
+    static HashMap<String, Set<String>> firstSet = new HashMap<>();
+    static HashMap<String, Set<String>> followSet = new HashMap<>();
+    static String startSymbol;
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter number of productions:");
+        int n = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.println("Enter productions (use @ for epsilon):");
+        for (int i = 0; i < n; i++) {
+            String input = scanner.nextLine();
+            String[] parts = input.split("->");
+            String lhs = parts[0].trim();
+            List<String> rhs = Arrays.asList(parts[1].trim().split("\\|"));
+            productions.put(lhs, rhs);
+        }
+
+        System.out.println("Enter start symbol:");
+        startSymbol = scanner.nextLine().trim();
+
+        for (String key : productions.keySet()) {
+            firstSet.put(key, new HashSet<>());
+            followSet.put(key, new HashSet<>());
+        }
+
+        for (String key : productions.keySet()) {
+            computeFirst(key);
+        }
+        
+        followSet.get(startSymbol).add("$"); // Add EOF symbol to start symbol FOLLOW set
+        for (String key : productions.keySet()) {
+            computeFollow(key);
+        }
+        
+        System.out.println("FIRST Sets:");
+        for (String key : firstSet.keySet()) {
+            System.out.println("FIRST(" + key + ") = " + firstSet.get(key));
+        }
+        
+        System.out.println("\nFOLLOW Sets:");
+        for (String key : followSet.keySet()) {
+            System.out.println("FOLLOW(" + key + ") = " + followSet.get(key));
+        }
+    }
+
+    static void computeFirst(String symbol) {
+        if (firstSet.get(symbol).size() > 0) return;
+        
+        for (String production : productions.get(symbol)) {
+            String[] symbols = production.split(""); // Split symbols correctly
+            for (String s : symbols) {
+                if (!productions.containsKey(s)) {
+                    firstSet.get(symbol).add(s);
+                    break;
+                } else {
+                    computeFirst(s);
+                    firstSet.get(symbol).addAll(firstSet.get(s));
+                    if (!firstSet.get(s).contains("ε")) break;
+                }
+            }
+        }
+    }
+
+    static void computeFollow(String symbol) {
+        for (String key : productions.keySet()) {
+            for (String production : productions.get(key)) {
+                String[] symbols = production.split(""); // Split symbols correctly
+                for (int i = 0; i < symbols.length; i++) {
+                    if (symbols[i].equals(symbol)) {
+                        if (i + 1 < symbols.length) {
+                            String next = symbols[i + 1];
+                            if (!productions.containsKey(next)) {
+                                followSet.get(symbol).add(next);
+                            } else {
+                                followSet.get(symbol).addAll(firstSet.get(next));
+                                if (firstSet.get(next).contains("@")) {
+                                    followSet.get(symbol).addAll(followSet.get(key));
+                                }
+                            }
+                        } else {
+                            followSet.get(symbol).addAll(followSet.get(key));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
