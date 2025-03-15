@@ -1,0 +1,61 @@
+import java.util.ArrayList;
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Enter the grammar with left recursion (e.g., A→Aα|β): ");
+        System.out.print("Non-terminal (A): ");
+        String nonTerminal = sc.nextLine().trim();
+
+        System.out.print("Productions (Separate alternatives with '|'): ");
+        String productions = sc.nextLine().trim();
+
+        String[] productionRules = productions.split("\\|");
+
+        ArrayList<String> alpha = new ArrayList<>();
+        ArrayList<String> beta = new ArrayList<>();
+
+        for (String production : productionRules) {
+            production = production.trim();
+            if (production.startsWith(nonTerminal)) {
+                alpha.add(production.substring(nonTerminal.length()));
+            } else {
+                beta.add(production);
+            }
+        }
+
+        if (alpha.isEmpty()) {
+            System.out.println("The grammar does not have left recursion.");
+        } else {
+            String newNonTerminal = nonTerminal + "'";
+
+            System.out.println("\nGrammar after eliminating left recursion:");
+            
+            System.out.print(nonTerminal + " → ");
+            if (beta.isEmpty()) {
+                System.out.print("@");
+            } else {
+                for (int i = 0; i < beta.size(); i++) {
+                    System.out.print(beta.get(i) + newNonTerminal);
+                    if (i < beta.size() - 1) {
+                        System.out.print(" | ");
+                    }
+                }
+            }
+            System.out.println();
+
+            System.out.print(newNonTerminal + " → ");
+            for (int i = 0; i < alpha.size(); i++) {
+                System.out.print(alpha.get(i) + newNonTerminal);
+                if (i < alpha.size() - 1) {
+                    System.out.print(" | ");
+                }
+            }
+            System.out.println(" | @");
+        }
+
+        sc.close();
+    }
+}
