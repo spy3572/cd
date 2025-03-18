@@ -1,94 +1,113 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Set;
 
-class FirstFollow {
-    static HashMap<String, List<String>> productions = new HashMap<>();
-    static HashMap<String, Set<String>> firstSet = new HashMap<>();
-    static HashMap<String, Set<String>> followSet = new HashMap<>();
-    static String startSymbol;
+public class first {
+    static String first[], follow[], grammar[][];
+    static List<String> nonTerminals = new ArrayList<>();
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter number of productions:");
-        int n = scanner.nextInt();
-        scanner.nextLine();
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the no of productions");
+        int n = sc.nextInt();
+        grammar = new String[n][2];
+        System.out.println("Enter the productions that are free from Left Recursion");
+        sc.nextLine();
 
-        System.out.println("Enter productions (use @ for epsilon):");
         for (int i = 0; i < n; i++) {
-            String input = scanner.nextLine();
-            String[] parts = input.split("->");
-            String lhs = parts[0].trim();
-            List<String> rhs = Arrays.asList(parts[1].trim().split("\\|"));
-            productions.put(lhs, rhs);
+            String s = sc.nextLine();
+            String p[] = s.split("->");
+            nonTerminals.add(p[0].trim());
+            grammar[i][0] = p[0].trim();
+            grammar[i][1] = p[1];
         }
 
-        System.out.println("Enter start symbol:");
-        startSymbol = scanner.nextLine().trim();
+        first = new String[n];
+        follow = new String[n];
+        for (int i = 0; i < n; i++)
+            first[i] = calculateFirst(i);
 
-        for (String key : productions.keySet()) {
-            firstSet.put(key, new HashSet<>());
-            followSet.put(key, new HashSet<>());
-        }
+        System.out.println("First :-");
+        for (int i = 0; i < n; i++)
+            System.out.println(nonTerminals.get(i) + " : " + print(first[i]));
 
-        for (String key : productions.keySet()) {
-            computeFirst(key);
-        }
-        
-        followSet.get(startSymbol).add("$"); // Add EOF symbol to start symbol FOLLOW set
-        for (String key : productions.keySet()) {
-            computeFollow(key);
-        }
-        
-        System.out.println("FIRST Sets:");
-        for (String key : firstSet.keySet()) {
-            System.out.println("FIRST(" + key + ") = " + firstSet.get(key));
-        }
-        
-        System.out.println("\nFOLLOW Sets:");
-        for (String key : followSet.keySet()) {
-            System.out.println("FOLLOW(" + key + ") = " + followSet.get(key));
-        }
+        for (int i = 0; i < n; i++)
+            follow[i] = calculateFollow(i);
+
+        System.out.println("Follow :-");
+        for (int i = 0; i < n; i++)
+            System.out.println(nonTerminals.get(i) + " : " + print(follow[i]));
     }
 
-    static void computeFirst(String symbol) {
-        if (firstSet.get(symbol).size() > 0) return;
-        
-        for (String production : productions.get(symbol)) {
-            String[] symbols = production.split(""); // Split symbols correctly
-            for (String s : symbols) {
-                if (!productions.containsKey(s)) {
-                    firstSet.get(symbol).add(s);
-                    break;
-                } else {
-                    computeFirst(s);
-                    firstSet.get(symbol).addAll(firstSet.get(s));
-                    if (!firstSet.get(s).contains("ε")) break;
-                }
-            }
-        }
+    static String print(String s) {
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        sb.append(s.charAt(0));
+        for (char c : s.toCharArray())
+            if (sb.indexOf(c + "") == -1)
+                sb.append("," + c);
+        sb.append('}');
+        return sb.toString();
     }
 
-    static void computeFollow(String symbol) {
-        for (String key : productions.keySet()) {
-            for (String production : productions.get(key)) {
-                String[] symbols = production.split(""); // Split symbols correctly
-                for (int i = 0; i < symbols.length; i++) {
-                    if (symbols[i].equals(symbol)) {
-                        if (i + 1 < symbols.length) {
-                            String next = symbols[i + 1];
-                            if (!productions.containsKey(next)) {
-                                followSet.get(symbol).add(next);
+    static String calculateFirst(int i) {
+        String s[] = grammar[i][1].split("\\|");
+        String temp = "";
+        for (String p : s) {
+            if (!nonTerminals.contains(p.charAt(0) + ""))
+                temp += p.charAt(0);
+            else
+                temp += calculateFirst(nonTerminals.indexOf(p.charAt(0) + ""));
+        }
+        return temp;
+    }
+
+    static String calculateFollow(int i) {
+        Set<Character> temp = new HashSet<>();
+        if (i == 0)
+            temp.add('$');
+
+        for (int idx = 0; idx < grammar.length; idx++) {
+            if (grammar[idx][0] == nonTerminals.get(i))
+                continue;
+
+            String s[] = grammar[idx][1].split("\\|");
+            for (String p : s) {
+                String nt = nonTerminals.get(i);
+                if (p.contains(nt)) {
+                    if (p.indexOf(nt) == p.length() - 1) {
+                        String t = follow[nonTerminals.indexOf(grammar[idx][0])];
+                        for (char c : t.toCharArray())
+                            temp.add(c);
+                    } else {
+                        int x = p.indexOf(nt);
+                        if (!nonTerminals.contains(p.charAt(x + 1) + ""))
+                            temp.add(p.charAt(x + 1));
+                        else {
+                            if (first[nonTerminals.indexOf(p.charAt(x + 1) + "")].contains("e")) {
+                                String t = first[nonTerminals.indexOf(p.charAt(x + 1) + "")];
+                                for (char c : t.toCharArray())
+                                    temp.add(c);
+                                temp.remove('e');
+                                t = follow[nonTerminals.indexOf(grammar[idx][0])];
+                                for (char c : t.toCharArray())
+                                    temp.add(c);
                             } else {
-                                followSet.get(symbol).addAll(firstSet.get(next));
-                                if (firstSet.get(next).contains("@")) {
-                                    followSet.get(symbol).addAll(followSet.get(key));
-                                }
+                                String t = first[nonTerminals.indexOf(p.charAt(x + 1) + "")];
+                                for (char c : t.toCharArray())
+                                    temp.add(c);
                             }
-                        } else {
-                            followSet.get(symbol).addAll(followSet.get(key));
                         }
                     }
                 }
             }
         }
+        String ans = "";
+        for (char x : temp)
+            ans += x;
+        return ans;
     }
 }
+
