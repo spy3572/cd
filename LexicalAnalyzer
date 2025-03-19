@@ -1,41 +1,104 @@
 import java.util.*;
-import java.util.regex.*;
+public class Exp2
+{
+public static void main(String[] args)
+{
+ArrayList<String> keywords = new ArrayList<>(Arrays.asList(
+"if", "else", "while", "for", "int", "float", "double", "char", "String", "boolean" ));
+ArrayList<String> operators = new ArrayList<>(Arrays.asList(
+"+", "-", "*", "/", "=", ">", "<", "!", "&", "|" ,"++","--" ));
+ArrayList<String> delimiters = new ArrayList<>(Arrays.asList(
+"(", ")", "{", "}", "[", "]", ",", ";"));
+Scanner sc = new Scanner(System.in);
+System.out.println("Enter program with single spaces");
+String input = sc.nextLine();
+String[] arr = input.split(" ");
+int len = arr.length;
+String[] ans = new String[len];
+for (int i = 0; i < len; i++)
 
-public class Main {
+{
 
-    public static boolean isValidIdentifier(String str) {
-        String regex = "[a-zA-Z][a-zA-Z0-9_]*";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(str);
-        return matcher.matches();
-    }
+if (keywords.contains(arr[i]))
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+{
 
-        System.out.println("Enter program: ");
-        String s = sc.nextLine();
+ans[i] = "keyword";
+}
 
-        String arr[] = s.split("\\s+");
+else if (operators.contains(arr[i]))
+{
 
-        List<String> keywords = Arrays.asList("if", "else", "int", "float", "string", "double", "boolean");
-        List<String> operators = Arrays.asList("+", "-", "*", "/", "=", "==", "<", ">", "<=", ">=");
-        List<String> delimiters = Arrays.asList("{", "}", "[", "]", "(", ")", ";", ",");
+ans[i] = "operator";
+}
 
-        for (String token : arr) {
-            if (keywords.contains(token)) {
-                System.out.println(token + " : Keyword");
-            } else if (operators.contains(token)) {
-                System.out.println(token + " : Operator");
-            } else if (delimiters.contains(token)) {
-                System.out.println(token + " : Delimiter");
-            } else if (isValidIdentifier(token)) {
-                System.out.println(token + " : Identifier");
-            } else {
-                System.out.println(token + " : Literal");
-            }
-        }
+else if (delimiters.contains(arr[i]))
+{
 
-        sc.close();
-    }
+ans[i] = "delimiter";
+}
+
+else if (isIdentifier(arr[i]))
+{
+
+ans[i] = "identifier";
+}
+
+else if (isLiteral(arr[i]))
+{
+
+ans[i] = "literal";
+}
+else
+
+TITLE: Implementation of Lexical Analyzer using JAVA programming.
+
+{
+
+ans[i] = "unknown";
+}
+}
+for (int i = 0; i < len; i++)
+
+{
+
+System.out.println(arr[i] + ": " + ans[i]);
+}
+}
+private static boolean isIdentifier(String str)
+{
+if (Character.isDigit(str.charAt(0)))
+{
+return false;
+}
+for (char c : str.toCharArray())
+{
+if (!Character.isLetterOrDigit(c) && c != '_')
+{
+return false;
+}
+}
+return true;
+}
+private static boolean isLiteral(String str)
+{
+try
+{
+Integer.parseInt(str);
+return true;
+}
+catch (NumberFormatException e1)
+{
+try
+{
+Double.parseDouble(str);
+return true;
+}
+catch (NumberFormatException e2)
+
+{
+return false;
+}
+}
+}
 }
