@@ -1,0 +1,42 @@
+import java.util.*;
+import java.util.regex.*;
+
+public class Main {
+
+    public static boolean isValidIdentifier(String str) {
+        String regex = "[a-zA-Z][a-zA-Z0-9_]*";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(str);
+        return matcher.matches();
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Enter program: ");
+        String s = sc.nextLine();
+
+        String arr[] = s.split("\\s+");
+
+        List<String> keywords = Arrays.asList("if", "else", "int", "float", "string", "double", "boolean");
+        List<String> operators = Arrays.asList("+", "-", "*", "/", "=", "==", "<", ">", "<=", ">=");
+        List<String> delimiters = Arrays.asList("{", "}", "[", "]", "(", ")", ";", ",");
+
+        for (String token : arr) {
+            if (keywords.contains(token)) {
+                System.out.println(token + " : Keyword");
+            } else if (operators.contains(token)) {
+                System.out.println(token + " : Operator");
+            } else if (delimiters.contains(token)) {
+                System.out.println(token + " : Delimiter");
+            } else if (isValidIdentifier(token)) {
+                System.out.println(token + " : Identifier");
+            } else {
+                System.out.println(token + " : Literal");
+            }
+        }
+
+        sc.close();
+    }
+}
+
