@@ -1,63 +1,75 @@
-import java.util.Scanner;
-public class Main {
+
+import java.util.*;
+
+public class Shift_Reduce {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        String input, stack = "";
-        int ruleCount;
+        Scanner sc = new Scanner(System.in);
 
-        System.out.println("Enter the number of production rules: ");
-        ruleCount = scanner.nextInt();
-        scanner.nextLine();
+        System.out.print("No.of production : ");
+        int n = sc.nextInt();
+        sc.nextLine(); 
+        String lhs[]=new String[n];
+        String rhs[]=new String[n];
 
-        ProductionRule[] rules = new ProductionRule[ruleCount];
-        System.out.println("Enter the production rules (in the form 'left->right'): ");
-        for (int i = 0; i < ruleCount; i++) {
-            String[] temp = scanner.nextLine().split("->");
-            rules[i] = new ProductionRule(temp[0], temp[1]);
+        System.out.println("Grammar : ");
+        for (int i = 0; i < n; i++) {
+            String[] p = sc.nextLine().split("->");
+            lhs[i]=p[0];
+            rhs[i]=p[1];
         }
+        
+        System.out.print("String : ");
+        String inp = sc.nextLine();
 
-        System.out.println("Enter the input string: ");
-        input = scanner.nextLine();
-
-        int i = 0;
-        System.out.println("Stack\tInputBuffer\tAction");
+        System.out.println("\nStack\tInputBuffer\tAction");
+        String stk="";
         while (true) {
-            if (i < input.length()) {
-                char ch = input.charAt(i);
-                i++;
-                stack += ch;
-                System.out.print(stack + "\t");
-                System.out.print(input.substring(i) + "\t\tShift " + ch + "\n");
-            }
+            char ch = inp.charAt(0);
+            stk += ch;
+            inp=inp.substring(1);
+            System.out.println(stk + "\t\t" + inp+"\t\tShift " + ch);
 
-            for (int j = 0; j < ruleCount; j++) {
-                int substringIndex = stack.indexOf(rules[j].right);
-                if (substringIndex != -1) {
-                    stack = stack.substring(0, substringIndex) + rules[j].left;
-                    System.out.print(stack + "\t");
-                    System.out.print(input.substring(i) + "\t\tReduce " + rules[j].left + "->" + rules[j].right + "\n");
+            for (int j = 0; j < n; j++) {
+                int idx = stk.indexOf(rhs[j]);
+                if (idx != -1) {
+                    stk = stk.substring(0, idx) + lhs[j];
+                    System.out.println(stk+"\t\t"+inp+"\t\tReduce " + lhs[j] + "->" + rhs[j]);
                     j = -1; 
                 }
             }
 
-            if (stack.equals(rules[0].left) && i == input.length()) {
-                System.out.println("\nAccepted");
+            if (stk.equals(lhs[0]) && inp.length()==0) {
+                System.out.println("Accepted");
                 break;
             }
-            if (i == input.length()) {
-                System.out.println("\nNot Accepted");
+            if (inp.length()==0) {
+                System.out.println("Not Accepted");
                 break;
             }
         }
-        scanner.close();
     }
 }
-class ProductionRule {
-    String left;
-    String right;
 
-    ProductionRule(String left, String right) {
-        this.left = left;
-        this.right = right;
-    }
-}
+output:
+
+No.of production : 4
+Grammar : 
+E->E+E
+E->E*E
+E->(E( )
+E->i
+String : i*i+i
+
+Stack	InputBuffer	Action
+i		*i+i		Shift i
+E		*i+i		Reduce E->i
+E*		i+i		Shift *
+E*i		+i		Shift i
+E*E		+i		Reduce E->i
+E		+i		Reduce E->E*E
+E+		i		Shift +
+E+i				Shift i
+E+E				Reduce E->i
+E				Reduce E->E+E
+Accepted
+
