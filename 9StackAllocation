@@ -1,83 +1,52 @@
-import java.util.Scanner;
+import java.util.*;
 
-public class Exp9 {
-    static int[] stack;
-    static int top, n;
+public class Main {
+    static Map<Character, List<String>> grammar = new HashMap<>();
+    static String input;
+    static int i = 0;
+
+    static boolean parse(char nonTerminal) {
+        int backtrack = i;
+        for (String prod : grammar.get(nonTerminal)) {
+            i = backtrack;
+            boolean success = true;
+            for (char symbol : prod.toCharArray()) {
+                if (symbol == '@') continue;
+                else if (Character.isUpperCase(symbol)) success &= parse(symbol);
+                else if (i < input.length() && input.charAt(i) == symbol) i++;
+                else { success = false; break; }
+            }
+            if (success) return true;
+        }
+        return false;
+    }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        top = -1;
-        System.out.println("Enter the size of stack[MAX=100]: ");
-        n = scanner.nextInt();
-        
-        if (n <= 0) {
-            System.out.println("Invalid stack size.");
-            return;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter number of productions:");
+        int n = sc.nextInt();
+        sc.nextLine();
+        System.out.println("Enter productions (Use '@' for epsilon, e.g., A->aA|@):");
+        for (int j = 0; j < n; j++) {
+            String[] rule = sc.nextLine().split("->");
+            grammar.put(rule[0].charAt(0), Arrays.asList(rule[1].split("\\|")));
         }
-        
-        stack = new int[n];
-        System.out.println("\n\tStack Operations:");
-        System.out.println("\t--------------------------");
-        System.out.println("\t1. Push");
-        System.out.println("\t2. Pop");
-        System.out.println("\t3. Display");
-        System.out.println("\t4. EXIT");
-        
-        int choice;
-        do {
-            System.out.println("\nEnter your choice: ");
-            choice = scanner.nextInt();
-            
-            switch (choice) {
-                case 1:
-                    push(scanner);
-                    break;
-                case 2:
-                    pop();
-                    break;
-                case 3:
-                    display();
-                    break;
-                case 4:
-                    System.out.println("\nEXIT");
-                    break;
-                default:
-                    System.out.println("Please enter a valid choice.");
-            }
-        } while (choice != 4);
-        
-        scanner.close();
-    }
-
-    static void push(Scanner scanner) {
-        if (top >= n - 1) {
-            System.out.println("\nStack overflow");
-        } else {
-            System.out.println("Enter a value to be pushed: ");
-            int x = scanner.nextInt();
-            top++;
-            stack[top] = x;
-        }
-    }
-
-    static void pop() {
-        if (top == -1) {
-            System.out.println("\nStack underflow");
-        } else {
-            System.out.println("\nThe popped element is " + stack[top]);
-            top--;
-        }
-    }
-
-    static void display() {
-        if (top >= 0) {
-            System.out.println("\nThe elements in the stack are:");
-            for (int i = top; i >= 0; i--) {
-                System.out.println(stack[i]);
-            }
-            System.out.println("\nSelect next choice");
-        } else {
-            System.out.println("\nThe stack is empty.");
-        }
-    }
+        System.out.println("Enter the string to check:");
+        input = sc.next() + "$";
+        System.out.println(parse('E') && i == input.length() - 1 ? "String is accepted" : "String is rejected");
+    }
 }
+
+output::
+
+Enter number of productions:
+5
+Enter productions (Use '@' for epsilon, e.g., A->aA|@):
+E->TA
+A->+TA|@
+T->FB
+B->*FB|@
+F->(E)|i
+Enter the string to check:
+i+i*i
+String is accepted
