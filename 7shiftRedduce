@@ -1,75 +1,77 @@
+import java.util.Scanner;
 
-import java.util.*;
+class ProductionRule {
+    String left;
+    String right;
 
-public class Shift_Reduce {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
-        System.out.print("No.of production : ");
-        int n = sc.nextInt();
-        sc.nextLine(); 
-        String lhs[]=new String[n];
-        String rhs[]=new String[n];
-
-        System.out.println("Grammar : ");
-        for (int i = 0; i < n; i++) {
-            String[] p = sc.nextLine().split("->");
-            lhs[i]=p[0];
-            rhs[i]=p[1];
-        }
-        
-        System.out.print("String : ");
-        String inp = sc.nextLine();
-
-        System.out.println("\nStack\tInputBuffer\tAction");
-        String stk="";
-        while (true) {
-            char ch = inp.charAt(0);
-            stk += ch;
-            inp=inp.substring(1);
-            System.out.println(stk + "\t\t" + inp+"\t\tShift " + ch);
-
-            for (int j = 0; j < n; j++) {
-                int idx = stk.indexOf(rhs[j]);
-                if (idx != -1) {
-                    stk = stk.substring(0, idx) + lhs[j];
-                    System.out.println(stk+"\t\t"+inp+"\t\tReduce " + lhs[j] + "->" + rhs[j]);
-                    j = -1; 
-                }
-            }
-
-            if (stk.equals(lhs[0]) && inp.length()==0) {
-                System.out.println("Accepted");
-                break;
-            }
-            if (inp.length()==0) {
-                System.out.println("Not Accepted");
-                break;
-            }
-        }
+    ProductionRule(String left, String right) {
+        this.left = left;
+        this.right = right;
     }
 }
 
-output:
+public class Exp7 {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        String input, stack = "";
+        int ruleCount;
 
-No.of production : 4
-Grammar : 
-E->E+E
-E->E*E
-E->(E( )
-E->i
-String : i*i+i
+        System.out.println("Enter the number of production rules: ");
+        ruleCount = scanner.nextInt();
+        scanner.nextLine(); // consume newline
 
-Stack	InputBuffer	Action
-i		*i+i		Shift i
-E		*i+i		Reduce E->i
-E*		i+i		Shift *
-E*i		+i		Shift i
-E*E		+i		Reduce E->i
-E		+i		Reduce E->E*E
-E+		i		Shift +
-E+i				Shift i
-E+E				Reduce E->i
-E				Reduce E->E+E
-Accepted
+        ProductionRule[] rules = new ProductionRule[ruleCount];
+
+        System.out.println("Enter the production rules (in the form 'left->right'):");
+        for (int i = 0; i < ruleCount; i++) {
+            String[] temp = scanner.nextLine().split("->");
+            rules[i] = new ProductionRule(temp[0].trim(), temp[1].trim());
+        }
+
+        System.out.println("Enter the input string: ");
+        input = scanner.nextLine();
+
+        int i = 0;
+        System.out.println("Stack\tInputBuffer\tAction");
+
+        while (true) {
+            if (i < input.length()) {
+                char ch = input.charAt(i);
+                i++;
+                stack += ch;
+                System.out.print(stack + "\t" + input.substring(i) + "\t\tShift " + ch + "\n");
+            }
+
+            // Try to reduce
+            boolean reduced = false;
+            for (int j = 0; j < ruleCount; j++) {
+                int index = stack.indexOf(rules[j].right);
+                if (index != -1) {
+                    stack = stack.substring(0, index) + rules[j].left;
+                    System.out.print(stack + "\t" + input.substring(i) +
+                            "\t\tReduce " + rules[j].left + "->" + rules[j].right + "\n");
+                    reduced = true;
+                    break; // Try reducing again from the beginning
+                }
+            }
+
+            // If no reduction was possible
+            if (!reduced) {
+                // Final accept condition
+                if (stack.equals(rules[0].left) && i == input.length()) {
+                    System.out.println("\nAccepted");
+                    break;
+                }
+                // Reject if input is consumed and stack isn't reduced to start symbol
+                if (i == input.length()) {
+                    System.out.println("\nNot Accepted");
+                    break;
+                }
+            }
+        }
+
+        scanner.close();
+    }
+}
+
 
