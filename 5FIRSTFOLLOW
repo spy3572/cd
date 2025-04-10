@@ -1,113 +1,117 @@
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
+import java.io.*;
 
-public class first {
-    static String first[], follow[], grammar[][];
-    static List<String> nonTerminals = new ArrayList<>();
+public class exp5 {
+    static char nonTerminals[], terminals[];
+    static int nonTermLen, termLen;
+    static String grammar[][], first[], follow[];
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the no of productions");
-        int n = sc.nextInt();
-        grammar = new String[n][2];
-        System.out.println("Enter the productions that are free from Left Recursion");
-        sc.nextLine();
+    public static void main(String args[]) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        for (int i = 0; i < n; i++) {
-            String s = sc.nextLine();
-            String p[] = s.split("->");
-            nonTerminals.add(p[0].trim());
-            grammar[i][0] = p[0].trim();
-            grammar[i][1] = p[1];
+        System.out.println("Enter the non-terminals:");
+        String nt = br.readLine();
+        nonTermLen = nt.length();
+        nonTerminals = nt.toCharArray();
+
+        System.out.println("Enter the terminals:");
+        String t = br.readLine();
+        termLen = t.length();
+        terminals = t.toCharArray();
+
+        System.out.println("Specify the grammar (Enter 9 for epsilon production):");
+        grammar = new String[nonTermLen][];
+
+        for (int i = 0; i < nonTermLen; i++) {
+            System.out.println("Enter the number of productions for " + nonTerminals[i]);
+            int n = Integer.parseInt(br.readLine());
+            grammar[i] = new String[n];
+            System.out.println("Enter the productions:");
+            for (int j = 0; j < n; j++) {
+                grammar[i][j] = br.readLine();
+            }
         }
 
-        first = new String[n];
-        follow = new String[n];
-        for (int i = 0; i < n; i++)
+        first = new String[nonTermLen];
+        for (int i = 0; i < nonTermLen; i++)
             first[i] = calculateFirst(i);
 
-        System.out.println("First :-");
-        for (int i = 0; i < n; i++)
-            System.out.println(nonTerminals.get(i) + " : " + print(first[i]));
+        System.out.println("First Set:");
+        printSets(first);
 
-        for (int i = 0; i < n; i++)
+        follow = new String[nonTermLen];
+        for (int i = 0; i < nonTermLen; i++)
             follow[i] = calculateFollow(i);
 
-        System.out.println("Follow :-");
-        for (int i = 0; i < n; i++)
-            System.out.println(nonTerminals.get(i) + " : " + print(follow[i]));
+        System.out.println("Follow Set:");
+        printSets(follow);
     }
 
-    static String print(String s) {
-        StringBuilder sb = new StringBuilder();
-        sb.append('{');
-        sb.append(s.charAt(0));
-        for (char c : s.toCharArray())
-            if (sb.indexOf(c + "") == -1)
-                sb.append("," + c);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    static String calculateFirst(int i) {
-        String s[] = grammar[i][1].split("\\|");
+    static String calculateFirst(int index) {
         String temp = "";
-        for (String p : s) {
-            if (!nonTerminals.contains(p.charAt(0) + ""))
-                temp += p.charAt(0);
-            else
-                temp += calculateFirst(nonTerminals.indexOf(p.charAt(0) + ""));
+        for (String production : grammar[index]) {
+            char firstChar = production.charAt(0);
+            if (Character.isLowerCase(firstChar) || firstChar == '9') {
+                temp += firstChar;
+            } else {
+                temp += calculateFirst(getIndex(firstChar));
+            }
         }
         return temp;
     }
 
-    static String calculateFollow(int i) {
-        Set<Character> temp = new HashSet<>();
-        if (i == 0)
-            temp.add('$');
+    static String calculateFollow(int index) {
+        String temp = "";
+        if (index == 0)
+            temp = "$";
 
-        for (int idx = 0; idx < grammar.length; idx++) {
-            if (grammar[idx][0] == nonTerminals.get(i))
-                continue;
-
-            String s[] = grammar[idx][1].split("\\|");
-            for (String p : s) {
-                String nt = nonTerminals.get(i);
-                if (p.contains(nt)) {
-                    if (p.indexOf(nt) == p.length() - 1) {
-                        String t = follow[nonTerminals.indexOf(grammar[idx][0])];
-                        for (char c : t.toCharArray())
-                            temp.add(c);
-                    } else {
-                        int x = p.indexOf(nt);
-                        if (!nonTerminals.contains(p.charAt(x + 1) + ""))
-                            temp.add(p.charAt(x + 1));
-                        else {
-                            if (first[nonTerminals.indexOf(p.charAt(x + 1) + "")].contains("e")) {
-                                String t = first[nonTerminals.indexOf(p.charAt(x + 1) + "")];
-                                for (char c : t.toCharArray())
-                                    temp.add(c);
-                                temp.remove('e');
-                                t = follow[nonTerminals.indexOf(grammar[idx][0])];
-                                for (char c : t.toCharArray())
-                                    temp.add(c);
+        for (int j = 0; j < nonTermLen; j++) {
+            for (String production : grammar[j]) {
+                for (int k = 0; k < production.length(); k++) {
+                    if (production.charAt(k) == nonTerminals[index]) {
+                        if (k == production.length() - 1) {
+                            if (j < index)
+                                temp += follow[j];
+                        } else {
+                            int nextIndex = getIndex(production.charAt(k + 1));
+                            if (nextIndex != -1) {
+                                temp += first[nextIndex];
+                                if (first[nextIndex].contains("9") && k + 1 == production.length() - 1)
+                                    temp += follow[j];
                             } else {
-                                String t = first[nonTerminals.indexOf(p.charAt(x + 1) + "")];
-                                for (char c : t.toCharArray())
-                                    temp.add(c);
+                                temp += production.charAt(k + 1);
                             }
                         }
                     }
                 }
             }
         }
-        String ans = "";
-        for (char x : temp)
-            ans += x;
-        return ans;
+        return temp;
+    }
+
+    static void printSets(String[] set) {
+        for (String s : set)
+            System.out.println(removeDuplicates(s));
+    }
+
+    static int getIndex(char c) {
+        for (int i = 0; i < nonTermLen; i++) {
+            if (nonTerminals[i] == c)
+                return i;
+        }
+        return -1;
+    }
+
+    static String removeDuplicates(String str) {
+        char[] chars = str.toCharArray();
+        Set<Character> charSet = new LinkedHashSet<>();
+        for (char c : chars)
+            charSet.add(c);
+        StringBuilder sb = new StringBuilder();
+        for (Character character : charSet)
+            sb.append(character);
+        return sb.toString();
     }
 }
+
 
