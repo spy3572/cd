@@ -1,57 +1,31 @@
-import java.util.Scanner;
+import java.util.*;
+
 public class Main {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter a string over the alphabet {a, b, c}: ");
-        String input = scanner.nextLine();
-        if (!input.matches("[abc]*")) {
-            System.out.println("Invalid input! The string must only contain 'a', 'b', or 'c'.");
-        } else {
-            boolean isAccepted = simulateDFA(input);
-            if (isAccepted) 
-                System.out.println("The string is ACCEPTED.");
-            else 
-                System.out.println("The string is REJECTED.");
-        }
-        scanner.close();
-    }
-    public static boolean simulateDFA(String input) {
-        String state = "q0"; // Start state
-        StringBuilder path = new StringBuilder("Path: q0");
-        for (char c : input.toCharArray()) {
-            switch (state) {
-                case "q0":
-                    if (c == 'a') 
-                        state = "q1";
-                    break;
-                case "q1":
-                    if (c == 'b') 
-                        state = "q2";
-                    else if (c == 'a') 
-                        state = "q1"; 
-                    else 
-                        state = "q0"; 
-                    break;
-                case "q2":
-                    if (c == 'c') 
-                        state = "q3";
-                    else if (c == 'a') 
-                        state = "q1"; 
-                    else 
-                        state = "q0"; 
-                    break;
-                case "q3":
-                    if (c == 'a') 
-                        state = "q1"; 
-                    else if (c == 'b') 
-                        state = "q2"; 
-                    else 
-                        state = "q0"; 
-                    break;
+    public static void main(String args[]) {
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.println("1. Enter the string");
+        System.out.println("2. Exit");
+        System.out.println("Enter a choice");
+        int n = sc.nextInt();
+        
+        while (n != 2) {
+            System.out.println("Enter the string:");
+            String s = sc.next();
+            
+            if (s.endsWith("abc")) {
+                System.out.println(s + " is Accepted");
+            } else {
+                System.out.println(s + " is Not Accepted");
             }
-            path.append(" -> ").append(state); 
+
+            System.out.println("1. Enter the string");
+            System.out.println("2. Exit");
+            System.out.println("Enter a choice");
+            n = sc.nextInt();
         }
-        System.out.println(path);
-        return state.equals("q3");
+
+        sc.close();
     }
 }
+
