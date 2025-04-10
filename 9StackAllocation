@@ -1,57 +1,86 @@
+import java.util.Scanner;
 
-import java.util.*;
+public class Exp9 {
+    static int[] stack;
+    static int top, n;
 
-public class Stack_Alloc {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        top = -1;
 
-	public static void main(String[] args) {
+        System.out.println("Enter the size of stack[MAX=100]: ");
+        n = scanner.nextInt();
 
-		Scanner sc = new Scanner(System.in);
-		Stack<Integer> s = new Stack<>();
-		System.out.print("Size : ");
-		int n = sc.nextInt();
+        if (n <= 0) {
+            System.out.println("Invalid stack size.");
+            return;
+        }
 
-		while (true) {
-			System.out.print("1.Push 2.Pop 3.Display 4.Exit\nChoice : ");
-			int c = sc.nextInt();
-			switch (c) {
-				case 1 :
-					if (s.size() >= n) System.out.println("Overflow");
-					else {
-					    System.out.print("Number : ");
-					    s.push(sc.nextInt());
-					}
-					break;
+        stack = new int[n];
 
-				case 2 : 
-					if (s.isEmpty()) System.out.println("Underflow");
-					else s.pop();
-					break;
+        System.out.println("\n\tStack Operations:");
+        System.out.println("\t--------------------------");
+        System.out.println("\t1. Push");
+        System.out.println("\t2. Pop");
+        System.out.println("\t3. Display");
+        System.out.println("\t4. EXIT");
 
-				case 3 : System.out.println(s); break;
-				
-				case 4 : return;
-				
-				default : System.out.println("Invalid ");
-			}
-		}
-	}
+        int choice;
+        do {
+            System.out.println("\nEnter your choice: ");
+            choice = scanner.nextInt();
+
+            switch (choice) {
+                case 1:
+                    push(scanner);
+                    break;
+                case 2:
+                    pop();
+                    break;
+                case 3:
+                    display();
+                    break;
+                case 4:
+                    System.out.println("\nEXIT");
+                    break;
+                default:
+                    System.out.println("Please enter a valid choice.");
+            }
+        } while (choice != 4);
+
+        scanner.close();
+    }
+
+    static void push(Scanner scanner) {
+        if (top >= n - 1) {
+            System.out.println("\nStack overflow");
+        } else {
+            System.out.println("Enter a value to be pushed: ");
+            int x = scanner.nextInt();
+            top++;
+            stack[top] = x;
+        }
+    }
+
+    static void pop() {
+        if (top == -1) {
+            System.out.println("\nStack underflow");
+        } else {
+            System.out.println("\nThe popped element is " + stack[top]);
+            top--;
+        }
+    }
+
+    static void display() {
+        if (top >= 0) {
+            System.out.println("\nThe elements in the stack are:");
+            for (int i = top; i >= 0; i--) {
+                System.out.println(stack[i]);
+            }
+            System.out.println("\nSelect next choice");
+        } else {
+            System.out.println("\nThe stack is empty.");
+        }
+    }
 }
 
-output:
-
-Size : 5
-1.Push 2.Pop 3.Display 4.Exit
-Choice : 1
-Number : 5
-1.Push 2.Pop 3.Display 4.Exit
-Choice : 1
-Number : 8
-1.Push 2.Pop 3.Display 4.Exit
-Choice : 1
-Number : 3
-1.Push 2.Pop 3.Display 4.Exit
-Choice : 1
-Number : 4
-1.Push 2.Pop 3.Display 4.Exit
-Choice : 3
-[5, 8, 3, 4]
