@@ -1,47 +1,70 @@
 import java.util.*;
 
-public class Main {
+public class LeftFactoring {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the productions (one per line, press ENTER to stop):");
 
-        List<String> productions = new ArrayList<>();
-        while (true) {
-            String input = sc.nextLine().trim();
-            if (input.isEmpty()) break; // Stop when an empty line is entered
-            productions.add(input);
+        System.out.println("Enter the number of productions:");
+        int n = sc.nextInt();
+        sc.nextLine();
+
+        String[] productions = new String[n];
+        System.out.println("Enter the productions:");
+        for (int i = 0; i < n; i++) {
+            productions[i] = sc.nextLine();
         }
+
+        eliminateLeftFactoring(productions);
+        sc.close();
+    }
+
+    private static void eliminateLeftFactoring(String[] productions) {
+        boolean leftFactored = false;
 
         for (String production : productions) {
             String[] parts = production.split("->");
-            if (parts.length < 2) {
-                System.out.println("Invalid production format: " + production);
-                continue;
-            }
-
             String lhs = parts[0].trim();
             String[] rhs = parts[1].split("\\|");
 
-            String prefix = rhs[0];
-            for (String r : rhs) {
-                while (!r.startsWith(prefix)) {
-                    prefix = prefix.substring(0, prefix.length() - 1);
-                    if (prefix.isEmpty()) break;
-                }
-            }
-
+            String prefix = findCommonPrefix(rhs);
             if (!prefix.isEmpty()) {
-                System.out.println(lhs + "->" + prefix + lhs + "'");
+                leftFactored = true;
+
+                System.out.println(lhs + " -> " + prefix + lhs + "'");
+
                 List<String> newRhs = new ArrayList<>();
                 for (String r : rhs) {
-                    newRhs.add(r.startsWith(prefix) ? r.substring(prefix.length()).trim() : r);
+                    if (r.startsWith(prefix)) {
+                        String suffix = r.substring(prefix.length()).trim();
+                        if (suffix.isEmpty()) {
+                            suffix = "ε"; // epsilon for empty string
+                        }
+                        newRhs.add(suffix);
+                    } else {
+                        newRhs.add(r);
+                    }
                 }
-                System.out.println(lhs + "'->" + String.join("|", newRhs));
-            } else {
-                System.out.println("No left factoring for: " + lhs + "->" + String.join("|", rhs));
+
+                System.out.println(lhs + "' -> " + String.join(" | ", newRhs));
             }
         }
 
-        sc.close();
+        if (!leftFactored) {
+            System.out.println("Given productions do not have left factoring.");
+        }
+    }
+
+    private static String findCommonPrefix(String[] rhs) {
+        String prefix = rhs[0];
+        for (int i = 1; i < rhs.length; i++) {
+            while (!rhs[i].startsWith(prefix)) {
+                prefix = prefix.substring(0, prefix.length() - 1);
+                if (prefix.isEmpty()) {
+                    return "";
+                }
+            }
+        }
+        return prefix;
     }
 }
+
